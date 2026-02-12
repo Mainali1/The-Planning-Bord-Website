@@ -2,8 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   Download, 
   Search, 
-  ChevronDown, 
-  ChevronUp, 
   ExternalLink, 
   Calendar, 
   Tag, 
@@ -11,9 +9,7 @@ import {
   Loader2,
   FileCode,
   Package,
-  LayoutDashboard,
-  Menu,
-  X
+  LayoutDashboard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';

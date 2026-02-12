@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import DownloadPage from './DownloadPage';
 import { 
   LayoutDashboard, 
   Users, 
@@ -18,7 +19,8 @@ import {
   CreditCard,
   FileText,
   Star,
-  Play
+  Play,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -28,6 +30,7 @@ function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
+  const [showDownload, setShowDownload] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -102,6 +105,10 @@ function App() {
     { icon: <Calendar className="w-5 h-5" />, name: "Scheduling", desc: "Timeline & Tasks" },
   ];
 
+  if (showDownload) {
+    return <DownloadPage onBack={() => setShowDownload(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F6FA] font-sans">
       {/* Navigation */}
@@ -127,7 +134,12 @@ function App() {
               <a href="#features" className="text-[#0B1A3F]/70 hover:text-[#0B1A3F] transition-colors text-sm font-medium">Product</a>
               <a href="#solutions" className="text-[#0B1A3F]/70 hover:text-[#0B1A3F] transition-colors text-sm font-medium">Solutions</a>
               <a href="#pricing" className="text-[#0B1A3F]/70 hover:text-[#0B1A3F] transition-colors text-sm font-medium">Pricing</a>
-              <a href="#testimonials" className="text-[#0B1A3F]/70 hover:text-[#0B1A3F] transition-colors text-sm font-medium">Resources</a>
+              <button 
+                onClick={() => setShowDownload(true)}
+                className="text-[#0B1A3F]/70 hover:text-[#0B1A3F] transition-colors text-sm font-medium"
+              >
+                Downloads
+              </button>
             </div>
 
             {/* CTA Buttons */}
@@ -189,9 +201,10 @@ function App() {
                   <Button 
                     size="lg" 
                     className="bg-[#4B6DFF] hover:bg-[#3a5aee] text-white rounded-full px-8 h-14 text-base font-semibold group"
+                    onClick={() => setShowDownload(true)}
                   >
-                    Get started free
-                    <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                    Download Now
+                    <Download className="w-5 h-5 ml-2 group-hover:translate-y-1 transition-transform" />
                   </Button>
                   <Button 
                     variant="outline" 
@@ -828,7 +841,7 @@ function App() {
             {/* Links */}
             {[
               { title: "Product", links: ["Features", "Integrations", "Pricing", "Changelog"] },
-              { title: "Resources", links: ["Documentation", "API Reference", "Guides", "Blog"] },
+              { title: "Resources", links: ["Documentation", "Downloads", "API Reference", "Guides"] },
               { title: "Company", links: ["About", "Careers", "Contact", "Privacy"] },
             ].map((group, idx) => (
               <div key={idx}>
@@ -836,9 +849,21 @@ function App() {
                 <ul className="space-y-3">
                   {group.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
-                      <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
-                        {link}
-                      </a>
+                      {link === "Downloads" ? (
+                        <button 
+                          onClick={() => {
+                            setShowDownload(true);
+                            window.scrollTo(0, 0);
+                          }}
+                          className="text-white/60 hover:text-white transition-colors text-sm"
+                        >
+                          {link}
+                        </button>
+                      ) : (
+                        <a href="#" className="text-white/60 hover:text-white transition-colors text-sm">
+                          {link}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>

@@ -99,108 +99,97 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F4F6FA] flex flex-col items-center justify-center p-6">
-        <Loader2 className="w-12 h-12 text-[#4B6DFF] animate-spin mb-4" />
-        <p className="text-[#0B1A3F] font-medium animate-pulse">Fetching latest releases...</p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
+        <p className="text-foreground font-medium animate-pulse">Fetching latest releases...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#F4F6FA] flex flex-col items-center justify-center p-6">
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-red-100 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="w-8 h-8 text-red-500" />
-          </div>
-          <h2 className="text-2xl font-bold text-[#0B1A3F] mb-4">Connection Error</h2>
-          <p className="text-[#6B7A99] mb-8">{error}</p>
-          <Button 
-            onClick={() => window.location.reload()}
-            className="w-full bg-[#4B6DFF] hover:bg-[#3a5aee] text-white rounded-full py-6"
-          >
-            Try Again
-          </Button>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center">
+        <div className="bg-destructive/10 p-4 rounded-full mb-6">
+          <AlertCircle className="w-12 h-12 text-destructive" />
         </div>
+        <h2 className="text-2xl font-bold text-foreground mb-2">Failed to load releases</h2>
+        <p className="text-muted-foreground max-w-md mb-8">{error}</p>
+        <Button 
+          onClick={() => window.location.reload()}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 px-8 font-semibold shadow-lg shadow-primary/20"
+        >
+          Try Again
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F6FA] font-sans">
-      {/* Mini Nav */}
-      <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          isScrolled 
-            ? 'bg-[#F4F6FA]/90 backdrop-blur-md border-b border-[#0B1A3F]/6' 
-            : 'bg-transparent'
-        }`}
-      >
-        <div className="w-full px-6 lg:px-12">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={onBack}>
-              <div className="w-8 h-8 bg-[#4B6DFF] rounded-lg flex items-center justify-center">
-                <LayoutDashboard className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-[#0B1A3F]">The Planning Bord</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              onClick={onBack}
-              className="text-[#0B1A3F] hover:text-[#4B6DFF] font-medium"
-            >
-              Back to Home
+    <div className="min-h-screen bg-background font-sans">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-3 group transition-transform hover:scale-105 cursor-pointer" onClick={onBack}>
+            <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-lg object-contain" />
+            <span className="text-xl font-bold text-foreground tracking-tight">The Planning Bord</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <button onClick={onBack} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</button>
+            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 px-6 font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95">
+              <a href="https://github.com/Mainali1/The-Planning-Bord" target="_blank" rel="noopener noreferrer">
+                <Package className="w-4 h-4 mr-2" />
+                GitHub
+              </a>
             </Button>
           </div>
         </div>
       </nav>
 
-      <main className="pt-32 pb-24 px-6 lg:px-12 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-12">
-          <Badge className="bg-[#4B6DFF]/10 text-[#4B6DFF] hover:bg-[#4B6DFF]/20 mb-4 rounded-full px-4 py-1">
-            Downloads
-          </Badge>
-          <h1 className="text-4xl lg:text-5xl font-bold text-[#0B1A3F] mb-4 tracking-tight">
-            Get The Planning Bord
-          </h1>
-          <p className="text-lg text-[#6B7A99] max-w-2xl">
-            Choose the version that fits your needs. All releases are automatically fetched from our secure GitHub repository.
-          </p>
-        </div>
+      <main className="pt-32 pb-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          {/* Header */}
+          <div className="mb-12">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <Download className="w-6 h-6 text-primary" />
+              </div>
+              <h1 className="text-4xl font-extrabold text-foreground tracking-tight">Downloads</h1>
+            </div>
+            <p className="text-lg text-muted-foreground">Get the latest version of The Planning Bord for your device.</p>
+          </div>
 
-        {/* Search & Filter */}
-        <div className="relative mb-12">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#6B7A99]" />
-          <Input 
-            type="text"
-            placeholder="Search versions or features..."
-            className="pl-12 py-6 rounded-2xl border-[#0B1A3F]/10 bg-white shadow-sm focus:ring-[#4B6DFF]/20 focus:border-[#4B6DFF] transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+          {/* Search/Filter */}
+          <div className="relative mb-8">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input 
+              placeholder="Search versions..." 
+              className="pl-12 h-14 bg-card border-border rounded-2xl focus-visible:ring-primary/20 text-lg shadow-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
 
-        {/* Releases Grid */}
-        <div className="grid gap-8">
-          {filteredReleases.length > 0 ? (
-            filteredReleases.map((release) => {
-              const { exe, msi } = getInstallerAssets(release.assets);
-              return (
-                <Card 
-                  key={release.id}
-                  className="overflow-hidden rounded-3xl border border-[#0B1A3F]/8 shadow-[0_10px_30px_rgba(11,26,63,0.04)] bg-white hover:shadow-[0_18px_50px_rgba(11,26,63,0.08)] transition-all"
-                >
-                  <div className="p-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-                      <div>
-                        <div className="flex items-center gap-3 mb-2">
-                          <h2 className="text-2xl font-bold text-[#0B1A3F]">{release.name || release.tag_name}</h2>
+          {/* Releases List */}
+          <div className="space-y-6">
+            {filteredReleases.length > 0 ? (
+              filteredReleases.map((release) => {
+                const { exe, msi } = getInstallerAssets(release.assets);
+
+                return (
+                  <Card key={release.id} className="p-8 border-border bg-card rounded-3xl shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <h2 className="text-2xl font-bold text-foreground">
+                            {release.name || release.tag_name}
+                          </h2>
                           {release.id === releases[0]?.id && (
-                            <Badge className="bg-[#2EE8B3] text-[#0B1A3F] font-semibold rounded-full">Latest</Badge>
+                            <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full">
+                              Latest
+                            </span>
                           )}
                         </div>
-                        <div className="flex flex-wrap gap-4 text-sm text-[#6B7A99]">
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           <span className="flex items-center gap-1.5">
                             <Tag className="w-4 h-4" />
                             {release.tag_name}
@@ -216,7 +205,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                         {exe ? (
                           <Button 
                             asChild
-                            className="bg-[#4B6DFF] hover:bg-[#3a5aee] text-white rounded-2xl h-14 px-8 font-semibold shadow-lg shadow-[#4B6DFF]/20 transition-all active:scale-95"
+                            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-14 px-8 font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95"
                           >
                             <a href={exe.browser_download_url} download>
                               <Download className="w-5 h-5 mr-2" />
@@ -234,7 +223,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                           <Button 
                             asChild
                             variant="outline"
-                            className="rounded-2xl h-14 px-8 font-semibold border-[#0B1A3F]/10 hover:bg-[#0B1A3F]/5 text-[#0B1A3F] transition-all active:scale-95"
+                            className="rounded-2xl h-14 px-8 font-semibold border-border hover:bg-muted text-foreground transition-all active:scale-95"
                           >
                             <a href={msi.browser_download_url} download>
                               <Package className="w-5 h-5 mr-2" />
@@ -253,21 +242,21 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="release-notes" className="border-none">
                         <AccordionTrigger className="hover:no-underline py-2 group">
-                          <span className="text-sm font-semibold text-[#4B6DFF] group-hover:text-[#3a5aee] transition-colors">
+                          <span className="text-sm font-semibold text-primary group-hover:text-primary/80 transition-colors">
                             View Release Notes
                           </span>
                         </AccordionTrigger>
                         <AccordionContent>
-                          <div className="mt-4 p-6 bg-[#F4F6FA] rounded-2xl prose prose-sm max-w-none prose-headings:text-[#0B1A3F] prose-p:text-[#6B7A99] prose-li:text-[#6B7A99]">
+                          <div className="mt-4 p-6 bg-muted/50 rounded-2xl prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground">
                             <div className="whitespace-pre-wrap break-words leading-relaxed text-sm">
                               {release.body || 'No release notes provided for this version.'}
                             </div>
-                            <div className="mt-6 pt-6 border-t border-[#0B1A3F]/5">
+                            <div className="mt-6 pt-6 border-t border-border">
                               <a 
                                 href={release.html_url} 
                                 target="_blank" 
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center text-xs font-medium text-[#6B7A99] hover:text-[#4B6DFF] transition-colors"
+                                className="inline-flex items-center text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
                               >
                                 View on GitHub
                                 <ExternalLink className="w-3 h-3 ml-1" />
@@ -277,30 +266,27 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-[#0B1A3F]/10">
-              <FileCode className="w-16 h-16 text-[#6B7A99]/20 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-[#0B1A3F] mb-2">No versions found</h3>
-              <p className="text-[#6B7A99]">Try adjusting your search filters.</p>
-            </div>
-          )}
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="text-center py-20 bg-card rounded-3xl border border-dashed border-border">
+                <FileCode className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-foreground mb-2">No versions found</h3>
+                <p className="text-muted-foreground">Try adjusting your search filters.</p>
+              </div>
+            )}
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#0B1A3F] py-12 text-center">
+      <footer className="bg-card border-t border-border py-12 text-center">
         <div className="px-6">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-6 h-6 bg-[#4B6DFF] rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-lg font-bold text-white">The Planning Bord</span>
+            <img src="/images/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
+            <span className="text-lg font-bold text-foreground">The Planning Bord</span>
           </div>
-          <p className="text-white/40 text-sm">
+          <p className="text-muted-foreground text-sm">
             &copy; {new Date().getFullYear()} The Planning Bord. All rights reserved.
           </p>
         </div>

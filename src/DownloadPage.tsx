@@ -276,6 +276,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                 <p className="text-muted-foreground">Try adjusting your search filters.</p>
               </div>
             )}
+          </div>
         </div>
       </main>
 

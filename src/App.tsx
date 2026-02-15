@@ -532,14 +532,14 @@ function App() {
                 <span className="text-primary">all sizes.</span>
               </h2>
               <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                Start solo. Scale to your whole company. From startups to enterprises, The Planning Bord grows with you.
+                Start as a solo owner on the free Single User edition, then move up to Professional or Enterprise tiers as your team grows.
               </p>
 
               <div className="space-y-4">
                 {[
-                  { icon: <Zap className="w-5 h-5" />, title: "Free for small teams", desc: "Up to 5 users, no credit card required" },
-                  { icon: <Shield className="w-5 h-5" />, title: "Admin controls & permissions", desc: "Role-based access control for enterprise security" },
-                  { icon: <CreditCard className="w-5 h-5" />, title: "SSO & security at scale", desc: "SAML, OAuth, and advanced security features" },
+                  { icon: <Zap className="w-5 h-5" />, title: "Single User is free", desc: "1 user, up to 5 clients, no license key required" },
+                  { icon: <Shield className="w-5 h-5" />, title: "Professional tier", desc: "2–100 users with role-based access control" },
+                  { icon: <CreditCard className="w-5 h-5" />, title: "Enterprise tier", desc: "100+ users, full security and audit coverage" },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-start gap-4 p-4 bg-card rounded-xl border border-border shadow-sm">
                     <div className="text-primary mt-0.5">{item.icon}</div>
@@ -626,33 +626,34 @@ function App() {
         <div className="w-full px-6 lg:px-12">
           {/* Section Header */}
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-4 rounded-full">
-              <CreditCard className="w-3.5 h-3.5 mr-1.5" />
-              Pricing
-            </Badge>
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-4 rounded-full">
+                <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                Pricing
+              </Badge>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Simple, transparent pricing
             </h2>
             <p className="text-lg text-muted-foreground">
-              Start free, upgrade when you need more power.
+              One-time licensing with clear limits per tier. No monthly per-user subscriptions.
             </p>
           </div>
 
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
-            {/* Starter */}
+            {/* Single User */}
             <Card className="p-6 lg:p-8 rounded-3xl bg-card border border-border shadow-sm">
               <div className="mb-6">
-                <div className="text-lg font-semibold text-foreground mb-2">Starter</div>
+                <div className="text-lg font-semibold text-foreground mb-2">Single User</div>
                 <div className="text-4xl font-bold text-foreground mb-2">Free</div>
-                <div className="text-sm text-muted-foreground">For small teams getting started</div>
+                <div className="text-sm text-muted-foreground">For individuals and solo business owners</div>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "Up to 5 team members",
-                  "3 active projects",
-                  "Basic task management",
-                  "Community support",
+                  "1 user",
+                  "Up to 5 clients",
+                  "Up to 75 items and 10 services",
+                  "No employee system or tools area",
+                  "Core business flows only",
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm text-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -661,28 +662,28 @@ function App() {
                 ))}
               </ul>
               <Button variant="outline" className="w-full rounded-full border-border">
-                Get started
+                Download free Single User edition
               </Button>
             </Card>
 
-            {/* Pro - Highlighted */}
+            {/* Professional - Highlighted */}
             <Card className="p-6 lg:p-8 rounded-3xl bg-primary text-primary-foreground border-0 relative overflow-hidden shadow-xl">
               <div className="absolute top-0 right-0 bg-primary-foreground/20 text-primary-foreground text-xs font-semibold px-4 py-1 rounded-bl-xl">
                 Most Popular
               </div>
               <div className="mb-6">
                 <div className="text-lg font-semibold mb-2">Professional</div>
-                <div className="text-4xl font-bold mb-2">$12<span className="text-lg font-normal opacity-70">/user/mo</span></div>
-                <div className="text-sm opacity-70">For growing teams</div>
+                <div className="text-4xl font-bold mb-2">$1,495</div>
+                <div className="text-sm opacity-70">One-time license for teams between 2 and 100 users</div>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "Unlimited team members",
-                  "Unlimited projects",
-                  "Advanced reporting",
-                  "Priority support",
-                  "Custom integrations",
-                  "API access",
+                  "2–100 users",
+                  "Up to 75 clients",
+                  "Up to 250 items and 50 services",
+                  "Up to 50 tools",
+                  "Most core modules enabled",
+                  "1 year support included, then optional monthly support",
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
@@ -691,7 +692,7 @@ function App() {
                 ))}
               </ul>
               <Button className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg">
-                Start free trial
+                Talk to sales about Professional
               </Button>
             </Card>
 
@@ -699,17 +700,16 @@ function App() {
             <Card className="p-6 lg:p-8 rounded-3xl bg-card border border-border shadow-sm">
               <div className="mb-6">
                 <div className="text-lg font-semibold text-foreground mb-2">Enterprise</div>
-                <div className="text-4xl font-bold text-foreground mb-2">Custom</div>
-                <div className="text-sm text-muted-foreground">For large organizations</div>
+                <div className="text-4xl font-bold text-foreground mb-2">$4,995</div>
+                <div className="text-sm text-muted-foreground">One-time license for organizations with 100+ users</div>
               </div>
               <ul className="space-y-3 mb-8">
                 {[
-                  "Everything in Pro",
-                  "SSO & SAML",
-                  "Advanced security",
-                  "Dedicated support",
-                  "Custom contracts",
-                  "SLA guarantee",
+                  "Unlimited users, clients, items, services, and tools",
+                  "All modules enabled, including dashboards and audit logs",
+                  "SMTP and export features unlocked",
+                  "Lifetime support included",
+                  "Optional white-label and advanced security options",
                 ].map((feature, idx) => (
                   <li key={idx} className="flex items-center gap-3 text-sm text-foreground">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -718,10 +718,14 @@ function App() {
                 ))}
               </ul>
               <Button variant="outline" className="w-full rounded-full border-border">
-                Contact sales
+                Contact sales for Enterprise
               </Button>
             </Card>
           </div>
+          <p className="mt-6 text-sm text-muted-foreground text-center max-w-3xl mx-auto">
+            Optional add-ons include white-label branding, premium backup & recovery, and extended support plans
+            for Professional and Enterprise customers.
+          </p>
         </div>
       </section>
 
@@ -839,6 +843,7 @@ function App() {
               { title: "Product", links: ["Features", "Integrations", "Pricing", "Changelog"] },
               { title: "Resources", links: ["Documentation", "Downloads", "API Reference", "Guides"] },
               { title: "Company", links: ["About", "Careers", "Contact", "Privacy"] },
+              { title: "Partners", links: ["Become a partner", "Reseller resources"] },
             ].map((group, idx) => (
               <div key={idx}>
                 <div className="font-semibold text-foreground mb-4">{group.title}</div>

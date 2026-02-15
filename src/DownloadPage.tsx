@@ -155,7 +155,12 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
               </div>
               <h1 className="text-4xl font-extrabold text-foreground tracking-tight">Downloads</h1>
             </div>
-            <p className="text-lg text-muted-foreground">Get the latest version of The Planning Bord for your device.</p>
+            <p className="text-lg text-muted-foreground">
+              Get the latest version of The Planning Bord for your device.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              The Single User edition is free and requires no license key. Professional ($1,495 one-time) and Enterprise ($4,995 one-time) tiers are unlocked using a purchased license key inside the app.
+            </p>
           </div>
 
           {/* Search/Filter */}

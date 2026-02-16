@@ -31,7 +31,13 @@ function CheckoutForm({ tier, onSuccess, onError }: CheckoutFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!stripe || !elements || !user) {
+    if (!stripe || !elements) {
+      onError('Payment is still initializing. Please wait a moment and try again.');
+      return;
+    }
+
+    if (!user) {
+      onError('You must be signed in to complete checkout.');
       return;
     }
 

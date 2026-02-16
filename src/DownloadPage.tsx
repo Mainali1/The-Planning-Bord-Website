@@ -49,6 +49,12 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const owner = import.meta.env.VITE_GITHUB_OWNER || 'Mainali1';
+  const repo = import.meta.env.VITE_GITHUB_REPO || 'The-Planning-Bord';
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/releases`;
+  const repoUrl = `https://github.com/${owner}/${repo}`;
+  const releasesUrl = `${repoUrl}/releases`;
+
   useEffect(() => {
     async function fetchReleases() {
       try {
@@ -64,7 +70,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        const response = await fetch('https://api.github.com/repos/Mainali1/The-Planning-Bord/releases', {
+        const response = await fetch(apiUrl, {
           headers
         });
         
@@ -91,7 +97,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
     }
 
     fetchReleases();
-  }, []);
+  }, [apiUrl]);
 
   const filteredReleases = useMemo(() => {
     return releases.filter(release => 
@@ -141,7 +147,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
             variant="outline"
             className="rounded-2xl h-12 px-8 font-semibold"
           >
-            <a href="https://github.com/Mainali1/The-Planning-Bord/releases" target="_blank" rel="noopener noreferrer">
+            <a href={releasesUrl} target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-2" />
               View on GitHub
             </a>
@@ -163,7 +169,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
           <div className="flex items-center gap-6">
             <button onClick={onBack} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</button>
             <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-10 px-6 font-semibold shadow-lg shadow-primary/20 transition-all active:scale-95">
-              <a href="https://github.com/Mainali1/The-Planning-Bord" target="_blank" rel="noopener noreferrer">
+              <a href={repoUrl} target="_blank" rel="noopener noreferrer">
                 <Package className="w-4 h-4 mr-2" />
                 GitHub
               </a>

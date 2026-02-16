@@ -1,6 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 import DownloadPage from './DownloadPage';
+import SignUp from './pages/SignUp';
+import Login from './pages/Login';
+import Checkout from './pages/Checkout';
+import Dashboard from './pages/Dashboard';
+import { useAuth } from './context/useAuth';
 import { 
   LayoutDashboard, 
   Users, 
@@ -25,14 +31,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { startCheckout } from '@/lib/utils';
+
+type PurchaseStatus = "success" | "cancel" | null;
 
 function App() {
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [showDownload, setShowDownload] = useState(false);
-  const [purchaseStatus, setPurchaseStatus] = useState<"success" | "cancel" | null>(null);
+  const [purchaseStatus] = useState<PurchaseStatus>(() => {
+    if (typeof window === "undefined") return null;
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("purchase") as PurchaseStatus | null;
+    if (status === "success" || status === "cancel") {
+      return status;
+    }
+    return null;
+  });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,20 +59,62 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("purchase");
-    if (status === "success" || status === "cancel") {
-      setPurchaseStatus(status);
-    }
-  }, []);
-
-  // Auto-rotate features
-  useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % 4);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleAuthSuccess = () => {
+    navigate('/dashboard');
+  };
+
+  if (showDownload) {
+    return <DownloadPage onBack={() => setShowDownload(false)} />;
+  }
+
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage 
+        isScrolled={isScrolled}
+        mobileMenuOpen={mobileMenuOpen}
+        setMobileMenuOpen={setMobileMenuOpen}
+        activeFeature={activeFeature}
+        setActiveFeature={setActiveFeature}
+        setShowDownload={setShowDownload}
+        purchaseStatus={purchaseStatus}
+      />} />
+      <Route path="/downloads" element={<DownloadPage onBack={() => navigate('/')} />} />
+      <Route path="/signup" element={<SignUp onAuthSuccess={handleAuthSuccess} />} />
+      <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />} />
+      <Route path="/checkout/:tier" element={<CheckoutPageWrapper />} />
+      <Route path="/dashboard" element={<DashboardWrapper />} />
+    </Routes>
+  );
+}
+
+function CheckoutPageWrapper() {
+  const params = new URLSearchParams(window.location.search);
+  const tier = params.get('tier') as 'professional' | 'enterprise' || 'professional';
+  return <Checkout tier={tier} />;
+}
+
+function DashboardWrapper() {
+  return <Dashboard />;
+}
+
+interface HomePageProps {
+  isScrolled: boolean;
+  mobileMenuOpen: boolean;
+  setMobileMenuOpen: Dispatch<SetStateAction<boolean>>;
+  activeFeature: number;
+  setActiveFeature: Dispatch<SetStateAction<number>>;
+  setShowDownload: Dispatch<SetStateAction<boolean>>;
+  purchaseStatus: PurchaseStatus;
+}
+
+function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature, setActiveFeature, setShowDownload, purchaseStatus }: HomePageProps) {
+  const { user } = useAuth();
 
   const features = [
     {
@@ -115,10 +173,6 @@ function App() {
     { icon: <Calendar className="w-5 h-5" />, name: "Scheduling", desc: "Timeline & Tasks" },
   ];
 
-  if (showDownload) {
-    return <DownloadPage onBack={() => setShowDownload(false)} />;
-  }
-
   return (
     <div className="min-h-screen bg-background font-sans">
       {/* Navigation */}
@@ -152,10 +206,20 @@ function App() {
 
             {/* CTA Buttons */}
             <div className="hidden lg:flex items-center gap-4">
-              <Button variant="ghost" className="text-foreground hover:text-primary">Sign in</Button>
-              <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6">
-                Get started
-              </Button>
+              {user ? (
+                <Button variant="ghost" className="text-foreground hover:text-primary" onClick={() => navigate('/dashboard')}>
+                  Dashboard
+                </Button>
+              ) : (
+                <>
+                  <Button variant="ghost" className="text-foreground hover:text-primary" onClick={() => navigate('/login')}>
+                    Sign in
+                  </Button>
+                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6" onClick={() => navigate('/signup')}>
+                    Get started
+                  </Button>
+                </>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -177,8 +241,14 @@ function App() {
               <a href="#pricing" className="text-foreground py-2">Pricing</a>
               <a href="#testimonials" className="text-foreground py-2">Resources</a>
               <hr className="border-border" />
-              <Button variant="ghost" className="justify-start">Sign in</Button>
-              <Button className="bg-primary text-white">Get started</Button>
+              {user ? (
+                <Button variant="ghost" className="justify-start" onClick={() => navigate('/dashboard')}>Dashboard</Button>
+              ) : (
+                <>
+                  <Button variant="ghost" className="justify-start" onClick={() => navigate('/login')}>Sign in</Button>
+                  <Button className="bg-primary text-white" onClick={() => navigate('/signup')}>Get started</Button>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -687,7 +757,7 @@ function App() {
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full rounded-full border-border">
+              <Button variant="outline" className="w-full rounded-full border-border" onClick={() => navigate('/downloads')}>
                 Download free Single User edition
               </Button>
             </Card>
@@ -719,11 +789,11 @@ function App() {
               </ul>
               <Button
                 className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg"
-                onClick={async () => {
-                  try {
-                    await startCheckout("professional");
-                  } catch (error) {
-                    alert("Unable to start Professional checkout. Please try again or contact support.");
+                onClick={() => {
+                  if (user) {
+                    navigate('/checkout/professional');
+                  } else {
+                    navigate('/signup');
                   }
                 }}
               >
@@ -755,11 +825,11 @@ function App() {
               <Button
                 variant="outline"
                 className="w-full rounded-full border-border"
-                onClick={async () => {
-                  try {
-                    await startCheckout("enterprise");
-                  } catch (error) {
-                    alert("Unable to start Enterprise checkout. Please try again or contact support.");
+                onClick={() => {
+                  if (user) {
+                    navigate('/checkout/enterprise');
+                  } else {
+                    navigate('/signup');
                   }
                 }}
               >

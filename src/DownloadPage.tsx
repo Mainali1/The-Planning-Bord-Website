@@ -8,12 +8,10 @@ import {
   AlertCircle,
   Loader2,
   FileCode,
-  Package,
-  LayoutDashboard
+  Package
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { 
   Accordion, 
@@ -50,26 +48,43 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   useEffect(() => {
     async function fetchReleases() {
       try {
         setLoading(true);
-        const response = await fetch('https://api.github.com/repos/Mainali1/The-Planning-Bord/releases');
+        
+        const headers: Record<string, string> = {
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        };
+        
+        const token = import.meta.env.VITE_GITHUB_TOKEN;
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        
+        const response = await fetch('https://api.github.com/repos/Mainali1/The-Planning-Bord/releases', {
+          headers
+        });
+        
         if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('Downloads temporarily unavailable. Please visit our GitHub repository directly to download.');
+          }
+          if (response.status === 401 || response.status === 403) {
+            throw new Error('GitHub API authentication failed. Please check the repository configuration.');
+          }
           throw new Error(`Failed to fetch releases: ${response.statusText}`);
         }
+        
         const data = await response.json();
         setReleases(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        setError(errorMessage.includes('404') || errorMessage.includes('unavailable') 
+          ? 'Downloads are currently unavailable. Please visit our GitHub repository to download the latest version.' 
+          : errorMessage);
       } finally {
         setLoading(false);
       }
@@ -82,7 +97,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
     return releases.filter(release => 
       release.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       release.tag_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      release.body.toLowerCase().includes(searchQuery.toLowerCase())
+      (release.body && release.body.toLowerCase().includes(searchQuery.toLowerCase()))
     ).sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
   }, [releases, searchQuery]);
 
@@ -114,12 +129,24 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         </div>
         <h2 className="text-2xl font-bold text-foreground mb-2">Failed to load releases</h2>
         <p className="text-muted-foreground max-w-md mb-8">{error}</p>
-        <Button 
-          onClick={() => window.location.reload()}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 px-8 font-semibold shadow-lg shadow-primary/20"
-        >
-          Try Again
-        </Button>
+        <div className="flex gap-4">
+          <Button 
+            onClick={() => window.location.reload()}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 px-8 font-semibold shadow-lg shadow-primary/20"
+          >
+            Try Again
+          </Button>
+          <Button 
+            asChild
+            variant="outline"
+            className="rounded-2xl h-12 px-8 font-semibold"
+          >
+            <a href="https://github.com/Mainali1/The-Planning-Bord/releases" target="_blank" rel="noopener noreferrer">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              View on GitHub
+            </a>
+          </Button>
+        </div>
       </div>
     );
   }
@@ -254,7 +281,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                         <AccordionContent>
                           <div className="mt-4 p-6 bg-muted/50 rounded-2xl prose prose-sm max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground">
                             <div className="whitespace-pre-wrap break-words leading-relaxed text-sm">
-                              {release.body || 'No release notes provided for this version.'}
+                              {release.body && release.body.trim() ? release.body : 'No release notes provided for this version.'}
                             </div>
                             <div className="mt-6 pt-6 border-t border-border">
                               <a 

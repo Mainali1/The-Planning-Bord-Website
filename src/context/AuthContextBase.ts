@@ -4,6 +4,9 @@ export interface AuthUser {
   uid: string
   email: string | null
   displayName: string | null
+  photoURL: string | null
+  licenseKey: string | null
+  licenseTier: 'single' | 'professional' | 'enterprise' | null
 }
 
 export interface AuthContextType {

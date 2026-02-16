@@ -6,7 +6,7 @@ import SignUp from './pages/SignUp';
 import Login from './pages/Login';
 import Checkout from './pages/Checkout';
 import Dashboard from './pages/Dashboard';
-import { useAuth } from './context/useAuth';
+import { useAuth } from '@/context/useAuth';
 import { 
   LayoutDashboard, 
   Users, 
@@ -26,11 +26,23 @@ import {
   FileText,
   Star,
   Play,
-  Download
+  Download,
+  Moon,
+  Sun,
+  LogOut,
+  Key
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type PurchaseStatus = "success" | "cancel" | null;
 
@@ -49,6 +61,10 @@ function App() {
     }
     return null;
   });
+
+  const handleBuy = (tier: 'professional' | 'enterprise') => {
+    navigate(`/checkout/${tier}`);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -75,15 +91,21 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage 
-        isScrolled={isScrolled}
-        mobileMenuOpen={mobileMenuOpen}
-        setMobileMenuOpen={setMobileMenuOpen}
-        activeFeature={activeFeature}
-        setActiveFeature={setActiveFeature}
-        setShowDownload={setShowDownload}
-        purchaseStatus={purchaseStatus}
-      />} />
+      <Route
+        path="/"
+        element={
+          <HomePage
+            isScrolled={isScrolled}
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={setMobileMenuOpen}
+            activeFeature={activeFeature}
+            setActiveFeature={setActiveFeature}
+            setShowDownload={setShowDownload}
+            purchaseStatus={purchaseStatus}
+            handleBuy={handleBuy}
+          />
+        }
+      />
       <Route path="/downloads" element={<DownloadPage onBack={() => navigate('/')} />} />
       <Route path="/signup" element={<SignUp onAuthSuccess={handleAuthSuccess} />} />
       <Route path="/login" element={<Login onAuthSuccess={handleAuthSuccess} />} />
@@ -111,10 +133,47 @@ interface HomePageProps {
   setActiveFeature: Dispatch<SetStateAction<number>>;
   setShowDownload: Dispatch<SetStateAction<boolean>>;
   purchaseStatus: PurchaseStatus;
+  handleBuy: (tier: 'professional' | 'enterprise') => void;
 }
 
-function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature, setActiveFeature, setShowDownload, purchaseStatus }: HomePageProps) {
-  const { user } = useAuth();
+function HomePage({
+  isScrolled,
+  mobileMenuOpen,
+  setMobileMenuOpen,
+  activeFeature,
+  setActiveFeature,
+  setShowDownload,
+  purchaseStatus,
+  handleBuy,
+}: HomePageProps) {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'light') return saved;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  });
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'light' ? 'dark' : 'light'));
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   const features = [
     {
@@ -177,11 +236,12 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
     <div className="min-h-screen bg-background font-sans">
       {/* Navigation */}
       <nav 
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ${
           isScrolled 
             ? 'bg-background/90 backdrop-blur-md border-b border-border' 
             : 'bg-transparent'
         }`}
+        style={{ zIndex: 9999 }}
       >
         <div className="w-full px-6 lg:px-12">
           <div className="flex items-center justify-between h-16 lg:h-20">
@@ -205,17 +265,71 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
             </div>
 
             {/* CTA Buttons */}
-            <div className="hidden lg:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-4 z-[10000] relative">
               {user ? (
-                <Button variant="ghost" className="text-foreground hover:text-primary" onClick={() => navigate('/dashboard')}>
-                  Dashboard
-                </Button>
+                <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      {user.photoURL ? (
+                        <img 
+                          src={user.photoURL} 
+                          alt={user.displayName || 'User'} 
+                          className="w-9 h-9 rounded-full object-cover border-2 border-primary"
+                        />
+                      ) : (
+                        <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
+                          {user.email?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{user.displayName || 'User'}</p>
+                        <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Dashboard</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/downloads')}>
+                      <Download className="mr-2 h-4 w-4" />
+                      <span>Downloads</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Key className="mr-2 h-4 w-4" />
+                      <span>License: {user.licenseTier || 'None'}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={toggleTheme}>
+                      {theme === 'light' ? (
+                        <>
+                          <Moon className="mr-2 h-4 w-4" />
+                          <span>Dark Mode</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sun className="mr-2 h-4 w-4" />
+                          <span>Light Mode</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <>
-                  <Button variant="ghost" className="text-foreground hover:text-primary" onClick={() => navigate('/login')}>
+                  <Button variant="ghost" className="text-foreground hover:text-primary cursor-pointer" onClick={() => { console.log('Login clicked'); navigate('/login'); }}>
                     Sign in
                   </Button>
-                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6" onClick={() => navigate('/signup')}>
+                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 cursor-pointer" onClick={() => { console.log('Signup clicked'); navigate('/signup'); }}>
                     Get started
                   </Button>
                 </>
@@ -294,7 +408,7 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">
                   <Button 
                     size="lg" 
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-14 text-base font-semibold group"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-8 h-14 text-base font-semibold group cursor-pointer"
                     onClick={() => setShowDownload(true)}
                   >
                     Download Now
@@ -757,7 +871,7 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full rounded-full border-border" onClick={() => navigate('/downloads')}>
+              <Button variant="outline" className="w-full rounded-full border-border cursor-pointer" onClick={() => navigate('/downloads')}>
                 Download free Single User edition
               </Button>
             </Card>
@@ -788,14 +902,8 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
                 ))}
               </ul>
               <Button
-                className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg"
-                onClick={() => {
-                  if (user) {
-                    navigate('/checkout/professional');
-                  } else {
-                    navigate('/signup');
-                  }
-                }}
+                className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg cursor-pointer"
+                onClick={() => handleBuy('professional')}
               >
                 Buy Professional – $1,495
               </Button>
@@ -824,14 +932,8 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
               </ul>
               <Button
                 variant="outline"
-                className="w-full rounded-full border-border"
-                onClick={() => {
-                  if (user) {
-                    navigate('/checkout/enterprise');
-                  } else {
-                    navigate('/signup');
-                  }
-                }}
+                className="w-full rounded-full border-border cursor-pointer"
+                onClick={() => handleBuy('enterprise')}
               >
                 Buy Enterprise – $4,995
               </Button>
@@ -861,14 +963,15 @@ function HomePage({ isScrolled, mobileMenuOpen, setMobileMenuOpen, activeFeature
               <p className="text-lg text-primary-foreground/80 mb-8 leading-relaxed">
                 Get started free. No credit card required. Join thousands of teams already using The Planning Bord to ship faster.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-full px-8 h-14 text-base font-semibold shadow-xl"
-                >
-                  Get started free
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    size="lg" 
+                    className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-full px-8 h-14 text-base font-semibold shadow-xl"
+                    onClick={() => navigate('/signup')}
+                  >
+                    Get started free
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
                 <Button 
                   variant="outline" 
                   size="lg" 

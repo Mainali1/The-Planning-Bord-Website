@@ -144,6 +144,27 @@ html {
   transform: scale(0.98);
 }
 
+/* Ensure buttons are always clickable */
+button, [role="button"], a.btn, button.btn {
+  cursor: pointer;
+  pointer-events: auto !important;
+}
+
+/* Fix for any potential overlay issues */
+.relative > * {
+  pointer-events: auto !important;
+}
+
+/* Ensure nav buttons are always clickable */
+nav button, nav a {
+  pointer-events: auto !important;
+}
+
+/* Fix for z-index issues */
+.z-50 {
+  z-index: 50 !important;
+}
+
 /* Gradient text */
 .gradient-text {
   background: linear-gradient(135deg, hsl(var(--primary)) 0%, #2EE8B3 100%);

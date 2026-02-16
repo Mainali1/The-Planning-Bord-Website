@@ -66,13 +66,19 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         };
         
         const token = import.meta.env.VITE_GITHUB_TOKEN;
+        console.log('GitHub Token available:', !!token);
+        
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
+        console.log('Fetching from:', apiUrl);
+        
         const response = await fetch(apiUrl, {
           headers
         });
+        
+        console.log('Response status:', response.status);
         
         if (!response.ok) {
           if (response.status === 404) {
@@ -85,9 +91,11 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         }
         
         const data = await response.json();
+        console.log('Releases fetched:', data.length);
         setReleases(data);
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        console.error('Fetch error:', errorMessage);
         setError(errorMessage.includes('404') || errorMessage.includes('unavailable') 
           ? 'Downloads are currently unavailable. Please visit our GitHub repository to download the latest version.' 
           : errorMessage);

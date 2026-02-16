@@ -25,12 +25,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { startCheckout } from '@/lib/utils';
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   const [showDownload, setShowDownload] = useState(false);
+  const [purchaseStatus, setPurchaseStatus] = useState<"success" | "cancel" | null>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,6 +40,14 @@ function App() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("purchase");
+    if (status === "success" || status === "cancel") {
+      setPurchaseStatus(status);
+    }
   }, []);
 
   // Auto-rotate features
@@ -173,6 +183,22 @@ function App() {
           </div>
         )}
       </nav>
+
+      {purchaseStatus && (
+        <div className="pt-24 px-6 lg:px-12">
+          <div
+            className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
+              purchaseStatus === "success"
+                ? "border-emerald-500/50 bg-emerald-500/5 text-emerald-900 dark:text-emerald-100"
+                : "border-amber-500/50 bg-amber-500/5 text-amber-900 dark:text-amber-100"
+            }`}
+          >
+            {purchaseStatus === "success"
+              ? "Thank you for your purchase. Your license key will be emailed to you shortly."
+              : "Your payment was cancelled. No charges were made. You can retry the purchase at any time."}
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative min-h-screen pt-20 lg:pt-0 overflow-hidden">
@@ -691,8 +717,17 @@ function App() {
                   </li>
                 ))}
               </ul>
-              <Button className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg">
-                Talk to sales about Professional
+              <Button
+                className="w-full rounded-full bg-primary-foreground text-primary hover:bg-primary-foreground/90 shadow-lg"
+                onClick={async () => {
+                  try {
+                    await startCheckout("professional");
+                  } catch (error) {
+                    alert("Unable to start Professional checkout. Please try again or contact support.");
+                  }
+                }}
+              >
+                Buy Professional – $1,495
               </Button>
             </Card>
 
@@ -717,8 +752,18 @@ function App() {
                   </li>
                 ))}
               </ul>
-              <Button variant="outline" className="w-full rounded-full border-border">
-                Contact sales for Enterprise
+              <Button
+                variant="outline"
+                className="w-full rounded-full border-border"
+                onClick={async () => {
+                  try {
+                    await startCheckout("enterprise");
+                  } catch (error) {
+                    alert("Unable to start Enterprise checkout. Please try again or contact support.");
+                  }
+                }}
+              >
+                Buy Enterprise – $4,995
               </Button>
             </Card>
           </div>

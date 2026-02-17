@@ -73,7 +73,7 @@ async function handleCheckoutComplete(session) {
   console.log(`Purchase completed: ${purchaseId} - ${tier} for ${customerEmail}`);
 
   try {
-    const licenseKey = await generateLicenseKey(tier, customerEmail);
+    const licenseKey = await generateLicenseKey(tier, customerEmail, customerName);
     
     if (licenseKey) {
       pendingPurchases.set(purchaseId, {
@@ -96,44 +96,38 @@ async function handleCheckoutComplete(session) {
   }
 }
 
-async function generateLicenseKey(tier, customerEmail) {
-  const apiKey = process.env.SIMPLE_LICENSE_API_KEY;
-  const baseUrl = process.env.SIMPLE_LICENSE_BASE_URL;
+async function generateLicenseKey(tier, customerEmail, customerName) {
+  const apiKey = process.env.LICENSE_SERVER_ADMIN_TOKEN;
+  const baseUrl = process.env.LICENSE_SERVER_URL;
 
-  if (!apiKey) {
-    console.error('SimpleLicense API key not configured');
+  if (!apiKey || !baseUrl) {
+    console.error('License server not configured');
     return null;
   }
 
-  const productName = tier === 'enterprise' 
-    ? 'Planning Board Enterprise' 
-    : 'Planning Board Professional';
-
   try {
-    const response = await fetch(`${baseUrl}/keys/`, {
+    const response = await fetch(`${baseUrl}/api/licenses`, {
       method: 'POST',
       headers: {
-        'Authorization': `ApiKey ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        key: {
-          name: `${customerEmail} - ${tier}`,
-          product_id: productName,
-          expires_at: null,
-          max_activations: 5,
-          fingerprint_enabled: true
-        }
+        tier: tier,
+        customer_name: customerName || customerEmail,
+        customer_email: customerEmail,
+        expires_at: tier === 'enterprise' ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        max_activations: 5
       })
     });
 
     if (!response.ok) {
       const error = await response.text();
-      throw new Error(`SimpleLicense API error: ${error}`);
+      throw new Error(`License server error: ${error}`);
     }
 
     const data = await response.json();
-    return data.key?.key;
+    return data.key;
   } catch (error) {
     console.error('Failed to generate license key:', error);
     throw error;

@@ -2,6 +2,11 @@ import express from 'express';
 
 export const licenseRoutes = express.Router();
 
+const getLicenseConfig = () => ({
+  apiKey: process.env.LICENSE_SERVER_ADMIN_TOKEN,
+  baseUrl: process.env.LICENSE_SERVER_URL
+});
+
 licenseRoutes.post('/validate', async (req, res) => {
   try {
     const { license_key, machine_id } = req.body;
@@ -14,10 +19,9 @@ licenseRoutes.post('/validate', async (req, res) => {
       });
     }
 
-    const apiKey = process.env.SIMPLE_LICENSE_API_KEY;
-    const baseUrl = process.env.SIMPLE_LICENSE_BASE_URL;
+    const { apiKey, baseUrl } = getLicenseConfig();
 
-    if (!apiKey) {
+    if (!apiKey || !baseUrl) {
       return res.status(500).json({
         valid: false,
         error: 'License validation service not configured',
@@ -25,34 +29,28 @@ licenseRoutes.post('/validate', async (req, res) => {
       });
     }
 
-    const response = await fetch(`${baseUrl}/validate/`, {
+    const response = await fetch(`${baseUrl}/api/validate`, {
       method: 'POST',
       headers: {
-        'Authorization': `ApiKey ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        license_key,
-        machine_id
+        key: license_key,
+        device_id: machine_id
       })
     });
 
     const data = await response.json();
 
     if (data.valid) {
-      const licenseData = data.license_data || {};
-      const productName = (licenseData.product_name || '').toLowerCase();
-      
-      let tier = 'professional';
-      if (productName.includes('enterprise')) {
-        tier = 'enterprise';
-      }
-
       return res.json({
         valid: true,
-        tier,
-        message: data.message || 'License is valid',
-        license_data: licenseData
+        tier: data.tier || 'professional',
+        message: 'License is valid',
+        expires_at: data.expires_at,
+        max_activations: data.max_activations,
+        activation_count: data.activation_count
       });
     } else {
       return res.json({
@@ -73,7 +71,7 @@ licenseRoutes.post('/validate', async (req, res) => {
 
 licenseRoutes.post('/activate', async (req, res) => {
   try {
-    const { license_key, machine_id } = req.body;
+    const { license_key, machine_id, device_name } = req.body;
 
     if (!license_key || !machine_id) {
       return res.status(400).json({
@@ -82,18 +80,18 @@ licenseRoutes.post('/activate', async (req, res) => {
       });
     }
 
-    const apiKey = process.env.SIMPLE_LICENSE_API_KEY;
-    const baseUrl = process.env.SIMPLE_LICENSE_BASE_URL;
+    const { apiKey, baseUrl } = getLicenseConfig();
 
-    const response = await fetch(`${baseUrl}/activate/`, {
+    const response = await fetch(`${baseUrl}/api/activate`, {
       method: 'POST',
       headers: {
-        'Authorization': `ApiKey ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        license_key,
-        machine_id
+        key: license_key,
+        device_id: machine_id,
+        device_name: device_name || ''
       })
     });
 
@@ -112,13 +110,12 @@ licenseRoutes.get('/check/:key', async (req, res) => {
   try {
     const { key } = req.params;
     
-    const apiKey = process.env.SIMPLE_LICENSE_API_KEY;
-    const baseUrl = process.env.SIMPLE_LICENSE_BASE_URL;
+    const { apiKey, baseUrl } = getLicenseConfig();
 
-    const response = await fetch(`${baseUrl}/keys/${key}/`, {
+    const response = await fetch(`${baseUrl}/api/licenses/${key}`, {
       method: 'GET',
       headers: {
-        'Authorization': `ApiKey ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`
       }
     });
 

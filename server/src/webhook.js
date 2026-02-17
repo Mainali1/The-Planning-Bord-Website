@@ -1,6 +1,8 @@
 import Stripe from 'stripe';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import admin from 'firebase-admin';
+import { db } from './firebase-admin.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -45,7 +47,7 @@ export async function stripeWebhook(req, res) {
 }
 
 async function handleCheckoutComplete(session) {
-  const customerEmail = session.customer_details?.email;
+  const customerEmail = session.customer_details?.email || session.metadata?.customer_email;
   const customerName = session.customer_details?.name;
   const priceId = session.price_id;
   const paymentIntentId = session.payment_intent;
@@ -55,9 +57,11 @@ async function handleCheckoutComplete(session) {
     return;
   }
 
-  let tier = 'professional';
+  let tier = session.metadata?.tier || 'professional';
   if (priceId === process.env.LICENSE_TIERS_PRICE_ENTERPRISE) {
     tier = 'enterprise';
+  } else if (priceId === process.env.LICENSE_TIERS_PRICE_PROFESSIONAL) {
+    tier = 'professional';
   }
 
   const purchaseId = uuidv4();
@@ -83,6 +87,7 @@ async function handleCheckoutComplete(session) {
       });
 
       await sendLicenseEmail(customerEmail, customerName, licenseKey, tier);
+      await updateUserLicenseInFirestore(customerEmail, licenseKey, tier);
       
       console.log(`License generated and sent: ${licenseKey} for ${customerEmail}`);
     }
@@ -182,6 +187,8 @@ async function sendLicenseEmail(email, name, licenseKey, tier) {
           <li>Click Activate</li>
         </ol>
         
+        <p>You can also view your license key in your account dashboard after logging in.</p>
+        
         <p>If you have any questions, reply to this email.</p>
         <p>Best regards,<br>The Planning Board Team</p>
       </div>
@@ -189,6 +196,39 @@ async function sendLicenseEmail(email, name, licenseKey, tier) {
   };
 
   await transporter.sendMail(mailOptions);
+}
+
+async function updateUserLicenseInFirestore(email, licenseKey, tier) {
+  try {
+    const usersSnapshot = await db.collection('users')
+      .where('email', '==', email.toLowerCase())
+      .limit(1)
+      .get();
+
+    if (!usersSnapshot.empty) {
+      const userDoc = usersSnapshot.docs[0];
+      await userDoc.ref.update({
+        licenseKey: licenseKey,
+        licenseTier: tier,
+        licensePurchaseDate: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      console.log(`Updated Firestore user ${email} with license key ${licenseKey}`);
+    } else {
+      console.log(`No user found with email ${email}, creating new user record`);
+      await db.collection('users').add({
+        email: email.toLowerCase(),
+        licenseKey: licenseKey,
+        licenseTier: tier,
+        licensePurchaseDate: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      });
+      console.log(`Created Firestore user ${email} with license key ${licenseKey}`);
+    }
+  } catch (error) {
+    console.error('Error updating Firestore user license:', error);
+  }
 }
 
 export { pendingPurchases };

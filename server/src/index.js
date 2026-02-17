@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { stripeWebhook } from './webhook.js';
 import { licenseRoutes } from './routes/license.js';
 import { purchaseRoutes } from './routes/purchase.js';
+import { db } from './firebase-admin.js';
 
 dotenv.config();
 

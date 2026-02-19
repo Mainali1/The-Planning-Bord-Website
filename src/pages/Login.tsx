@@ -28,7 +28,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       onAuthSuccess();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in';
       setError(errorMessage.replace('Firebase: ', ''));
@@ -60,7 +60,7 @@ export default function Login({ onAuthSuccess }: LoginProps) {
       }
 
       onAuthSuccess();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign in with Google';
       setError(errorMessage.replace('Firebase: ', ''));

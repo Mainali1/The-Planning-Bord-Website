@@ -76,7 +76,7 @@ function App() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveFeature((prev) => (prev + 1) % 4);
+      setActiveFeature((prev) => (prev + 1) % 7);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -199,6 +199,24 @@ function HomePage({
       title: "Finance & Reporting",
       description: "General ledger, automated invoicing, financial reporting, and cash flow analysis.",
       image: "/images/card_finance.jpg"
+    },
+    {
+      icon: <Zap className="w-6 h-6" />,
+      title: "Workflow Automation",
+      description: "Automate business processes with visual workflow builder, approval chains, and scheduled tasks.",
+      image: "/images/card_automation.jpg"
+    },
+    {
+      icon: <CheckCircle2 className="w-6 h-6" />,
+      title: "Approval Chains",
+      description: "Multi-step approval workflows for purchases, quotes, and time-off requests.",
+      image: "/images/card_approvals.jpg"
+    },
+    {
+      icon: <MessageSquare className="w-6 h-6" />,
+      title: "Team Collaboration",
+      description: "Activity feed, comments, @mentions, and internal messaging—all in one place.",
+      image: "/images/card_collab.jpg"
     }
   ];
 
@@ -230,6 +248,8 @@ function HomePage({
     { icon: <BarChart3 className="w-5 h-5" />, name: "Finance", desc: "Ledger & Reports" },
     { icon: <MessageSquare className="w-5 h-5" />, name: "CRM", desc: "Clients & Quotes" },
     { icon: <Calendar className="w-5 h-5" />, name: "Scheduling", desc: "Timeline & Tasks" },
+    { icon: <Zap className="w-5 h-5" />, name: "Automation", desc: "Workflows & Approvals" },
+    { icon: <CheckCircle2 className="w-5 h-5" />, name: "Collab", desc: "Chat & Activity" },
   ];
 
   return (
@@ -402,7 +422,7 @@ function HomePage({
                 </h1>
                 
                 <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-                  A comprehensive ERP system that brings inventory, HR, projects, and finance into one powerful platform. Built for modern teams who move fast.
+                  A comprehensive ERP system that brings inventory, HR, projects, finance, and automation into one powerful platform. Built for modern teams who move fast.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">

@@ -57,7 +57,7 @@ export default function SignUp({ onAuthSuccess }: SignUpProps) {
       });
 
       onAuthSuccess();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
       setError(errorMessage.replace('Firebase: ', ''));
@@ -89,7 +89,7 @@ export default function SignUp({ onAuthSuccess }: SignUpProps) {
       }
 
       onAuthSuccess();
-      navigate('/');
+      navigate('/dashboard');
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to sign up with Google';
       setError(errorMessage.replace('Firebase: ', ''));

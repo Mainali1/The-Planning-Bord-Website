@@ -75,6 +75,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         const fetchUrl = `${apiUrl}?t=${Date.now()}`;
         console.log('Fetching from:', fetchUrl);
         
+        // Force fresh fetch
         const response = await fetch(fetchUrl, {
           headers,
           cache: 'no-store'

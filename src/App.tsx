@@ -996,6 +996,7 @@ function HomePage({
                   variant="outline" 
                   size="lg" 
                   className="rounded-full px-8 h-14 text-base font-semibold border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10"
+                  onClick={() => window.open('https://theplanningbord-doc-site.vercel.app/docs/', '_blank')}
                 >
                   <FileText className="w-5 h-5 mr-2" />
                   Read documentation
@@ -1078,17 +1079,47 @@ function HomePage({
 
             {/* Links */}
             {[
-              { title: "Product", links: ["Features", "Integrations", "Pricing", "Changelog"] },
-              { title: "Resources", links: ["Documentation", "Downloads", "API Reference", "Guides"] },
-              { title: "Company", links: ["About", "Careers", "Contact", "Privacy"] },
-              { title: "Partners", links: ["Become a partner", "Reseller resources"] },
+              { 
+                title: "Product", 
+                links: [
+                  { label: "Features", href: "#features" },
+                  { label: "Integrations", href: "#" },
+                  { label: "Pricing", href: "#pricing" },
+                  { label: "Changelog", href: "#" }
+                ] 
+              },
+              { 
+                 title: "Resources", 
+                 links: [
+                   { label: "Documentation", href: "https://theplanningbord-doc-site.vercel.app/docs/" },
+                   { label: "Downloads", href: "#" },
+                   { label: "API Reference", href: "https://theplanningbord-doc-site.vercel.app/docs/api-reference" },
+                   { label: "Guides", href: "https://theplanningbord-doc-site.vercel.app/docs/user-guide/dashboard" }
+                 ] 
+               },
+              { 
+                title: "Company", 
+                links: [
+                  { label: "About", href: "#" },
+                  { label: "Careers", href: "#" },
+                  { label: "Contact", href: "#" },
+                  { label: "Privacy", href: "#" }
+                ] 
+              },
+              { 
+                title: "Partners", 
+                links: [
+                  { label: "Become a partner", href: "#" },
+                  { label: "Reseller resources", href: "#" }
+                ] 
+              },
             ].map((group, idx) => (
               <div key={idx}>
                 <div className="font-semibold text-foreground mb-4">{group.title}</div>
                 <ul className="space-y-3">
                   {group.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
-                      {link === "Downloads" ? (
+                      {link.label === "Downloads" ? (
                         <button 
                           onClick={() => {
                             setShowDownload(true);
@@ -1096,11 +1127,16 @@ function HomePage({
                           }}
                           className="text-muted-foreground hover:text-primary transition-colors text-sm"
                         >
-                          {link}
+                          {link.label}
                         </button>
                       ) : (
-                        <a href="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                          {link}
+                        <a 
+                          href={link.href} 
+                          className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                          target={link.href?.startsWith('http') ? "_blank" : undefined}
+                          rel={link.href?.startsWith('http') ? "noopener noreferrer" : undefined}
+                        >
+                          {link.label}
                         </a>
                       )}
                     </li>

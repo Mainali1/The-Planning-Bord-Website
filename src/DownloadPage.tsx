@@ -72,10 +72,12 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
           headers['Authorization'] = `Bearer ${token}`;
         }
         
-        console.log('Fetching from:', apiUrl);
+        const fetchUrl = `${apiUrl}?t=${Date.now()}`;
+        console.log('Fetching from:', fetchUrl);
         
-        const response = await fetch(apiUrl, {
-          headers
+        const response = await fetch(fetchUrl, {
+          headers,
+          cache: 'no-store'
         });
         
         console.log('Response status:', response.status);

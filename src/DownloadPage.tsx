@@ -8,7 +8,8 @@ import {
   AlertCircle,
   Loader2,
   FileCode,
-  Package
+  Package,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,7 +23,6 @@ import {
 import { format } from 'date-fns';
 
 // --- Interfaces ---
-
 interface GitHubAsset {
   id: number;
   name: string;
@@ -39,15 +39,16 @@ interface GitHubRelease {
   published_at: string;
   html_url: string;
   assets: GitHubAsset[];
+  prerelease: boolean;
 }
 
-// --- Components ---
-
+// --- Component ---
 export default function DownloadPage({ onBack }: { onBack: () => void }) {
   const [releases, setReleases] = useState<GitHubRelease[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [fetchCount, setFetchCount] = useState(0);
 
   const owner = import.meta.env.VITE_GITHUB_OWNER || 'Mainali1';
   const repo = import.meta.env.VITE_GITHUB_REPO || 'The-Planning-Bord';
@@ -55,67 +56,80 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
   const repoUrl = `https://github.com/${owner}/${repo}`;
   const releasesUrl = `${repoUrl}/releases`;
 
-  useEffect(() => {
-    async function fetchReleases() {
-      try {
-        setLoading(true);
+  // Fetch all releases with pagination
+  const fetchAllReleases = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const headers: Record<string, string> = {
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      };
+      
+      const token = import.meta.env.VITE_GITHUB_TOKEN;
+      console.log('GitHub Token available:', !!token);
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      let page = 1;
+      let allReleases: GitHubRelease[] = [];
+      let fetched;
+
+      do {
+        const url = `${apiUrl}?per_page=100&page=${page}&t=${Date.now()}`;
+        console.log(`Fetching page ${page}...`, url);
         
-        const headers: Record<string, string> = {
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        };
-        
-        const token = import.meta.env.VITE_GITHUB_TOKEN;
-        console.log('GitHub Token available:', !!token);
-        
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        
-        const fetchUrl = `${apiUrl}?t=${Date.now()}`;
-        console.log('Fetching from:', fetchUrl);
-        
-        // Force fresh fetch
-        const response = await fetch(fetchUrl, {
-          headers,
-          cache: 'no-store'
-        });
-        
-        console.log('Response status:', response.status);
+        const response = await fetch(url, { headers, cache: 'no-store' });
         
         if (!response.ok) {
           if (response.status === 404) {
-            throw new Error('Downloads temporarily unavailable. Please visit our GitHub repository directly to download.');
+            throw new Error('Downloads temporarily unavailable. Please visit our GitHub repository directly.');
           }
           if (response.status === 401 || response.status === 403) {
             throw new Error('GitHub API authentication failed. Please check the repository configuration.');
           }
           throw new Error(`Failed to fetch releases: ${response.statusText}`);
         }
-        
-        const data = await response.json();
-        console.log('Releases fetched:', data.length);
-        setReleases(data);
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-        console.error('Fetch error:', errorMessage);
-        setError(errorMessage.includes('404') || errorMessage.includes('unavailable') 
-          ? 'Downloads are currently unavailable. Please visit our GitHub repository to download the latest version.' 
-          : errorMessage);
-      } finally {
-        setLoading(false);
-      }
-    }
 
-    fetchReleases();
+        fetched = await response.json();
+        
+        // Log each fetched release tag for debugging
+        fetched.forEach((rel: GitHubRelease) => {
+          console.log(`Fetched release: ${rel.tag_name} (prerelease: ${rel.prerelease})`);
+        });
+
+        allReleases = [...allReleases, ...fetched];
+        page++;
+      } while (fetched.length === 100); // if we got 100, there might be more
+
+      console.log(`Total releases fetched: ${allReleases.length}`);
+      setFetchCount(allReleases.length);
+      setReleases(allReleases);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      console.error('Fetch error:', errorMessage);
+      setError(errorMessage.includes('404') || errorMessage.includes('unavailable') 
+        ? 'Downloads are currently unavailable. Please visit our GitHub repository to download the latest version.' 
+        : errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllReleases();
   }, [apiUrl]);
 
   const filteredReleases = useMemo(() => {
-    return releases.filter(release => 
-      release.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      release.tag_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (release.body && release.body.toLowerCase().includes(searchQuery.toLowerCase()))
-    ).sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
+    return releases
+      .filter(release => 
+        release.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        release.tag_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (release.body && release.body.toLowerCase().includes(searchQuery.toLowerCase()))
+      )
+      .sort((a, b) => new Date(b.published_at).getTime() - new Date(a.published_at).getTime());
   }, [releases, searchQuery]);
 
   const formatSize = (bytes: number) => {
@@ -148,9 +162,10 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         <p className="text-muted-foreground max-w-md mb-8">{error}</p>
         <div className="flex gap-4">
           <Button 
-            onClick={() => window.location.reload()}
+            onClick={fetchAllReleases}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 px-8 font-semibold shadow-lg shadow-primary/20"
           >
+            <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
           <Button 
@@ -205,6 +220,27 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-muted-foreground mt-2">
               The Single User edition is free and requires no license key. Professional ($1,495 one-time) and Enterprise ($4,995 one-time) tiers are unlocked using a purchased license key inside the app.
             </p>
+            {/* Debug info – shows how many releases were fetched */}
+            <p className="text-xs text-muted-foreground mt-4">
+              Fetched {fetchCount} releases from GitHub. 
+              {fetchCount < 13 && (
+                <span className="text-yellow-600 ml-1">
+                  (Expected 13 according to GitHub – check console for list of tags)
+                </span>
+              )}
+            </p>
+
+            {/* OPTIONAL: Uncomment the block below to see a quick list of fetched tags */}
+            {/* <details className="mt-2 text-xs bg-muted/30 p-2 rounded">
+              <summary className="cursor-pointer text-muted-foreground">Show fetched tags</summary>
+              <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                {releases.map(r => (
+                  <li key={r.id} className={r.prerelease ? 'text-yellow-600' : ''}>
+                    {r.tag_name} {r.prerelease && '(pre-release)'}
+                  </li>
+                ))}
+              </ul>
+            </details> */}
           </div>
 
           {/* Search/Filter */}
@@ -218,6 +254,19 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
             />
           </div>
 
+          {/* Manual Refresh */}
+          <div className="flex justify-end mb-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={fetchAllReleases}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+
           {/* Releases List */}
           <div className="space-y-6">
             {filteredReleases.length > 0 ? (
@@ -228,13 +277,18 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
                   <Card key={release.id} className="p-8 border-border bg-card rounded-3xl shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                       <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-3 mb-3 flex-wrap">
                           <h2 className="text-2xl font-bold text-foreground">
                             {release.name || release.tag_name}
                           </h2>
                           {release.id === releases[0]?.id && (
                             <span className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider rounded-full">
                               Latest
+                            </span>
+                          )}
+                          {release.prerelease && (
+                            <span className="px-3 py-1 bg-yellow-500/10 text-yellow-600 text-[10px] font-bold uppercase tracking-wider rounded-full">
+                              Pre-release
                             </span>
                           )}
                         </div>

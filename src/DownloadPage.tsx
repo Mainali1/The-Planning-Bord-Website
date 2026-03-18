@@ -68,7 +68,6 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
       };
       
       const token = import.meta.env.VITE_GITHUB_TOKEN;
-      console.log('GitHub Token available:', !!token);
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -79,8 +78,6 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
 
       do {
         const url = `${apiUrl}?per_page=100&page=${page}&t=${Date.now()}`;
-        console.log(`Fetching page ${page}...`, url);
-        
         const response = await fetch(url, { headers, cache: 'no-store' });
         
         if (!response.ok) {
@@ -94,22 +91,14 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         }
 
         fetched = await response.json();
-        
-        // Log each fetched release tag for debugging
-        fetched.forEach((rel: GitHubRelease) => {
-          console.log(`Fetched release: ${rel.tag_name} (prerelease: ${rel.prerelease})`);
-        });
-
         allReleases = [...allReleases, ...fetched];
         page++;
-      } while (fetched.length === 100); // if we got 100, there might be more
+      } while (fetched.length === 100);
 
-      console.log(`Total releases fetched: ${allReleases.length}`);
       setFetchCount(allReleases.length);
       setReleases(allReleases);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      console.error('Fetch error:', errorMessage);
       setError(errorMessage.includes('404') || errorMessage.includes('unavailable') 
         ? 'Downloads are currently unavailable. Please visit our GitHub repository to download the latest version.' 
         : errorMessage);
@@ -185,12 +174,38 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen bg-background font-sans">
+      {/* Modulifyr Attribution Banner */}
+      <div className="w-full bg-primary/10 border-b border-primary/20 py-2 px-6 text-center text-sm">
+        <span className="text-muted-foreground">A product by </span>
+        <a
+          href="https://modulifyr.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary font-semibold hover:underline inline-flex items-center gap-1"
+        >
+          Modulifyr
+          <ExternalLink className="w-3 h-3" />
+        </a>
+        <span className="text-muted-foreground"> — Custom Modular Software Systems</span>
+      </div>
+
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border">
+      <nav className="sticky top-8 w-full bg-background/80 backdrop-blur-md z-50 border-b border-border">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 group transition-transform hover:scale-105 cursor-pointer" onClick={onBack}>
             <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-lg object-contain" />
-            <span className="text-xl font-bold text-foreground tracking-tight">The Planning Bord</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-xl font-bold text-foreground tracking-tight">The Planning Bord</span>
+              <a
+                href="https://modulifyr.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="text-[10px] text-muted-foreground hover:text-primary transition-colors font-medium tracking-wide"
+              >
+                by Modulifyr
+              </a>
+            </div>
           </div>
           <div className="flex items-center gap-6">
             <button onClick={onBack} className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">Home</button>
@@ -204,7 +219,7 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
         </div>
       </nav>
 
-      <main className="pt-32 pb-20 px-6">
+      <main className="pt-12 pb-20 px-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-12">
@@ -220,27 +235,9 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
             <p className="text-sm text-muted-foreground mt-2">
               The Single User edition is free and requires no license key. Professional ($1,495 one-time) and Enterprise ($4,995 one-time) tiers are unlocked using a purchased license key inside the app.
             </p>
-            {/* Debug info – shows how many releases were fetched */}
             <p className="text-xs text-muted-foreground mt-4">
-              Fetched {fetchCount} releases from GitHub. 
-              {fetchCount < 13 && (
-                <span className="text-yellow-600 ml-1">
-                  (Expected 13 according to GitHub – check console for list of tags)
-                </span>
-              )}
+              Fetched {fetchCount} releases from GitHub.
             </p>
-
-            {/* OPTIONAL: Uncomment the block below to see a quick list of fetched tags */}
-            {/* <details className="mt-2 text-xs bg-muted/30 p-2 rounded">
-              <summary className="cursor-pointer text-muted-foreground">Show fetched tags</summary>
-              <ul className="list-disc pl-5 mt-1 space-y-0.5">
-                {releases.map(r => (
-                  <li key={r.id} className={r.prerelease ? 'text-yellow-600' : ''}>
-                    {r.tag_name} {r.prerelease && '(pre-release)'}
-                  </li>
-                ))}
-              </ul>
-            </details> */}
           </div>
 
           {/* Search/Filter */}
@@ -386,12 +383,21 @@ export default function DownloadPage({ onBack }: { onBack: () => void }) {
       {/* Footer */}
       <footer className="bg-card border-t border-border py-12 text-center">
         <div className="px-6">
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="flex items-center justify-center gap-2 mb-2">
             <img src="/images/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
             <span className="text-lg font-bold text-foreground">The Planning Bord</span>
           </div>
-          <p className="text-muted-foreground text-sm">
-            &copy; {new Date().getFullYear()} The Planning Bord. All rights reserved.
+          <a
+            href="https://modulifyr.vercel.app"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1 mb-4"
+          >
+            A product by <span className="font-semibold text-primary">Modulifyr</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+          <p className="text-muted-foreground text-sm mt-2">
+            &copy; {new Date().getFullYear()} The Planning Bord · Modulifyr. All rights reserved.
           </p>
         </div>
       </footer>

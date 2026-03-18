@@ -30,7 +30,8 @@ import {
   Moon,
   Sun,
   LogOut,
-  Key
+  Key,
+  ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -254,9 +255,24 @@ function HomePage({
 
   return (
     <div className="min-h-screen bg-background font-sans">
+      {/* Modulifyr Attribution Banner */}
+      <div className="w-full bg-primary/10 border-b border-primary/20 py-2 px-6 text-center text-sm">
+        <span className="text-muted-foreground">A product by </span>
+        <a
+          href="https://modulifyr.vercel.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary font-semibold hover:underline inline-flex items-center gap-1"
+        >
+          Modulifyr
+          <ExternalLink className="w-3 h-3" />
+        </a>
+        <span className="text-muted-foreground"> — Custom Modular Software Systems</span>
+      </div>
+
       {/* Navigation */}
       <nav 
-        className={`fixed top-0 left-0 right-0 z-[9999] transition-all duration-300 ${
+        className={`fixed top-8 left-0 right-0 z-[9999] transition-all duration-300 ${
           isScrolled 
             ? 'bg-background/90 backdrop-blur-md border-b border-border' 
             : 'bg-transparent'
@@ -268,7 +284,17 @@ function HomePage({
             {/* Logo */}
             <div className="flex items-center gap-3">
               <img src="/images/logo.png" alt="Logo" className="w-10 h-10 rounded-lg object-contain" />
-              <span className="text-xl font-bold text-foreground tracking-tight">The Planning Bord</span>
+              <div className="flex flex-col leading-tight">
+                <span className="text-xl font-bold text-foreground tracking-tight">The Planning Bord</span>
+                <a
+                  href="https://modulifyr.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] text-muted-foreground hover:text-primary transition-colors font-medium tracking-wide"
+                >
+                  by Modulifyr
+                </a>
+              </div>
             </div>
 
             {/* Desktop Nav */}
@@ -346,10 +372,10 @@ function HomePage({
                 </DropdownMenu>
               ) : (
                 <>
-                  <Button variant="ghost" className="text-foreground hover:text-primary cursor-pointer" onClick={() => { console.log('Login clicked'); navigate('/login'); }}>
+                  <Button variant="ghost" className="text-foreground hover:text-primary cursor-pointer" onClick={() => { navigate('/login'); }}>
                     Sign in
                   </Button>
-                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 cursor-pointer" onClick={() => { console.log('Signup clicked'); navigate('/signup'); }}>
+                  <Button className="bg-primary hover:bg-primary/90 text-white rounded-full px-6 cursor-pointer" onClick={() => { navigate('/signup'); }}>
                     Get started
                   </Button>
                 </>
@@ -389,7 +415,7 @@ function HomePage({
       </nav>
 
       {purchaseStatus && (
-        <div className="pt-24 px-6 lg:px-12">
+        <div className="pt-32 px-6 lg:px-12">
           <div
             className={`mb-6 rounded-xl border px-4 py-3 text-sm ${
               purchaseStatus === "success"
@@ -405,13 +431,25 @@ function HomePage({
       )}
 
       {/* Hero Section */}
-      <section className="relative min-h-screen pt-20 lg:pt-0 overflow-hidden">
+      <section className="relative min-h-screen pt-28 lg:pt-0 overflow-hidden">
         <div className="w-full min-h-screen flex items-center">
           <div className="w-full px-6 lg:px-12 py-12 lg:py-0">
             <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
               {/* Left: Content */}
               <div className="order-2 lg:order-1 max-w-xl">
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-6 rounded-full px-4 py-1.5 border-none">
+                {/* Modulifyr product badge */}
+                <a
+                  href="https://modulifyr.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full bg-muted border border-border text-xs font-medium text-muted-foreground hover:border-primary/40 hover:text-primary transition-all"
+                >
+                  <span className="w-2 h-2 rounded-full bg-primary inline-block"></span>
+                  Built by Modulifyr
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+
+                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-4 rounded-full px-4 py-1.5 border-none">
                   <Zap className="w-3.5 h-3.5 mr-1.5" />
                   Now with AI-powered insights
                 </Badge>
@@ -1057,9 +1095,21 @@ function HomePage({
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
             {/* Brand */}
             <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-1">
                 <img src="/images/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
                 <span className="text-xl font-bold text-foreground">The Planning Bord</span>
+              </div>
+              {/* Modulifyr attribution in footer */}
+              <div className="mb-4">
+                <a
+                  href="https://modulifyr.vercel.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-primary transition-colors inline-flex items-center gap-1"
+                >
+                  A product by <span className="font-semibold text-primary">Modulifyr</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </div>
               <p className="text-muted-foreground mb-6 max-w-sm">
                 A comprehensive ERP system for modern teams. Plan, track, and ship—together.
@@ -1100,9 +1150,9 @@ function HomePage({
               { 
                 title: "Company", 
                 links: [
-                  { label: "About", href: "#" },
-                  { label: "Careers", href: "#" },
-                  { label: "Contact", href: "#" },
+                  { label: "About Modulifyr", href: "https://modulifyr.vercel.app/about" },
+                  { label: "Modulifyr Services", href: "https://modulifyr.vercel.app/services" },
+                  { label: "Contact", href: "https://modulifyr.vercel.app/contact" },
                   { label: "Privacy", href: "#" }
                 ] 
               },
@@ -1148,8 +1198,17 @@ function HomePage({
 
           {/* Bottom Bar */}
           <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} The Planning Bord. All rights reserved.
+            <div className="text-muted-foreground text-sm flex items-center gap-2">
+              © {new Date().getFullYear()} The Planning Bord. All rights reserved. &nbsp;·&nbsp;
+              <a
+                href="https://modulifyr.vercel.app"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline font-medium inline-flex items-center gap-1"
+              >
+                A Modulifyr Product
+                <ExternalLink className="w-3 h-3" />
+              </a>
             </div>
             <div className="flex gap-6">
               <a href="#" className="text-muted-foreground hover:text-foreground text-sm transition-colors">Terms</a>
